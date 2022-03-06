@@ -1,6 +1,6 @@
 import backtrader as bt
 import datetime  # For datetime objects
-from strategies import TestStrategy
+from Strategies.testStrategy import TestStrategy
 
 if __name__ == '__main__':
     cerebro = bt.Cerebro()
