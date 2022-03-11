@@ -8,11 +8,7 @@ class AIStrategy(bt.Strategy):
         # Standard MACD Parameters
         ('macd1', 12),
         ('macd2', 26),
-        ('macdsig', 9),
-        ('atrperiod', 14),  # ATR Period (standard)
-        ('atrdist', 3.0),  # ATR distance for stop price
-        ('smaperiod', 30),  # SMA Period (pretty standard)
-        ('dirperiod', 10),  # Lookback period to consider SMA trend direction
+        ('macdsig', 9)
     )
 
     def log(self, txt, dt=None):
@@ -29,6 +25,12 @@ class AIStrategy(bt.Strategy):
         self.crossover = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
 
         self.psar = bt.indicators.PSAR()
+
+        #self.ema200 = bt.indicators.ExponentialMovingAverage(period=200)
+
+        self.rsi = bt.indicators.RSI_SMA()
+
+        self.macd_cross_up = False
 
         # Keep a reference to the "close" line in the data[0] dataseries
         self.dataclose = self.datas[0].close
@@ -60,14 +62,26 @@ class AIStrategy(bt.Strategy):
         if self.order:
             return  # pending order execution
 
-        # if self.mcross[0] > 0.0 and self.smadir < 0.0 and not self.position:
-        if not self.position:
-            if self.crossover and self.psar[0] < self.dataclose[0]:  # or self.rsi < 30:
-                self.buy()
-                print('BOUGHT AT {}'.format(self.dataclose[0]))
+        if self.crossover[0] > 0.0:
+            self.macd_cross_up = True
+        elif self.crossover[0] < 0.0:
+            self.macd_cross_up = False
 
-        # elif ((self.mcross[0] <= 0.0 and self.smadir >= 0.0) or self.rsi > 70) and self.position:
-        else:
-            if self.crossover == -1:  # or self.rsi > 70:
-                self.close()
-                print('SOLD AT {}'.format(self.dataclose[0]))
+        # self.log('')
+        # print(self.macd_cross_up)
+
+        if not self.position:
+            if self.macd_cross_up and self.psar[0] < self.dataclose[0]:  # or self.rsi < 30:
+                # Buy
+                self.buy()
+                self.log('BUY CREATE, %.2f' % self.dataclose[0])
+
+                self.macd_cross_up = False
+
+                # Place OCO for selling
+                take_profit = self.dataclose[0] * 2 - self.psar[0]
+                stop_loss = self.psar[0]
+                print('TAKE PROFIT = ' + str(take_profit))
+                print('STOP_LOSS = ' + str(stop_loss))
+                oco_profit = self.sell(exectype=bt.Order.Limit, price=take_profit)
+                oco_loss = self.sell(exectype=bt.Order.Stop, price=stop_loss, oco=oco_profit)

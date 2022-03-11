@@ -13,8 +13,8 @@ if __name__ == '__main__':
         # Do not pass values before this date
         fromdate=datetime.datetime(2000, 1, 1),
         # Do not pass values after this date
-        todate=datetime.datetime(2000, 12, 31),
-        reverse=False)
+        todate=datetime.datetime(2000, 12, 31))#,
+        #reverse=False)
 
     cerebro.adddata(data)
     cerebro.addstrategy(AIStrategy)
@@ -25,4 +25,4 @@ if __name__ == '__main__':
 
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
-    cerebro.plot()
+    cerebro.plot(style='candlestick')
