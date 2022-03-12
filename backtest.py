@@ -8,13 +8,16 @@ if __name__ == '__main__':
     cerebro.broker.setcash(100000.0)
 
     # Create a Data Feed
-    data = bt.feeds.YahooFinanceCSVData(
-        dataname='datas/oracle.csv',
+    data = bt.feeds.GenericCSVData(
+        dataname='datas/15min_BTC-USDT.csv',
         # Do not pass values before this date
-        fromdate=datetime.datetime(2000, 1, 1),
+        fromdate=datetime.datetime(2021, 1, 1),
         # Do not pass values after this date
-        todate=datetime.datetime(2000, 12, 31))#,
-        #reverse=False)
+        todate=datetime.datetime(2021, 1, 4),
+        dtformat="%Y-%m-%d %H:%M:%S",
+        timeframe=bt.TimeFrame.Minutes,
+        compression=1)
+    data.addfilter(bt.filters.SessionFilter(data))
 
     cerebro.adddata(data)
     cerebro.addstrategy(AIStrategy)

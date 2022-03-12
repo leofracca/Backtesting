@@ -26,7 +26,7 @@ class AIStrategy(bt.Strategy):
 
         self.psar = bt.indicators.PSAR()
 
-        #self.ema200 = bt.indicators.ExponentialMovingAverage(period=200)
+        self.ema200 = bt.indicators.ExponentialMovingAverage(period=200)
 
         self.rsi = bt.indicators.RSI_SMA()
 
@@ -71,7 +71,7 @@ class AIStrategy(bt.Strategy):
         # print(self.macd_cross_up)
 
         if not self.position:
-            if self.macd_cross_up and self.psar[0] < self.dataclose[0]:  # or self.rsi < 30:
+            if self.macd_cross_up and self.psar[0] < self.dataclose[0] and self.dataclose[0] > self.ema200[0]:  # or self.rsi < 30:
                 # Buy
                 self.buy()
                 self.log('BUY CREATE, %.2f' % self.dataclose[0])
@@ -79,9 +79,17 @@ class AIStrategy(bt.Strategy):
                 self.macd_cross_up = False
 
                 # Place OCO for selling
-                take_profit = self.dataclose[0] * 2 - self.psar[0]
-                stop_loss = self.psar[0]
-                print('TAKE PROFIT = ' + str(take_profit))
-                print('STOP_LOSS = ' + str(stop_loss))
-                oco_profit = self.sell(exectype=bt.Order.Limit, price=take_profit)
-                oco_loss = self.sell(exectype=bt.Order.Stop, price=stop_loss, oco=oco_profit)
+                self.take_profit = self.dataclose[0] * 2 - self.psar[0]
+                self.stop_loss = self.psar[0]
+                print('TAKE PROFIT = ' + str(self.take_profit))
+                print('STOP_LOSS = ' + str(self.stop_loss))
+                # oco_profit = self.sell(exectype=bt.Order.Limit, price=take_profit)
+                # oco_loss = self.sell(exectype=bt.Order.Stop, price=stop_loss, oco=oco_profit)
+
+        else:
+            if self.dataclose[0] >= self.take_profit or self.dataclose[0] < self.stop_loss:
+                # SELL, SELL, SELL!!! (with all possible default parameters)
+                self.log('SELL CREATE, %.2f' % self.dataclose[0])
+
+                # Keep track of the created order to avoid a 2nd order
+                self.order = self.sell()
