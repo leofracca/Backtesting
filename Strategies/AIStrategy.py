@@ -12,24 +12,29 @@ class AIStrategy(bt.Strategy):
     )
 
     def log(self, txt, dt=None):
-        ''' Logging function for this strategy'''
         dt = dt or self.datas[0].datetime.date(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
+        # MACD
         self.macd = bt.indicators.MACD(self.data,
                                        period_me1=self.params.macd1,
                                        period_me2=self.params.macd2,
                                        period_signal=self.params.macdsig)
-        # Cross of macd.macd and macd.signal
+        # Cross of macd line and signal line (of the MACD)
         self.crossover = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
 
+        # Parabolic SAR
         self.psar = bt.indicators.PSAR()
 
+        # 200 EMA
         self.ema200 = bt.indicators.ExponentialMovingAverage(period=200)
 
+        # RSI
         self.rsi = bt.indicators.RSI_SMA()
 
+        # To keep track of when the crossover crosses up or down
+        # (True if it crosses up, False otherwise)
         self.macd_cross_up = False
 
         # Keep a reference to the "close" line in the data[0] dataseries
@@ -62,33 +67,42 @@ class AIStrategy(bt.Strategy):
         if self.order:
             return  # pending order execution
 
-        if self.crossover[0] > 0.0:
-            self.macd_cross_up = True
-        elif self.crossover[0] < 0.0:
-            self.macd_cross_up = False
-
         # self.log('')
         # print(self.macd_cross_up)
 
+        # Check if we have any open position
         if not self.position:
-            if self.macd_cross_up and self.psar[0] < self.dataclose[0] and self.dataclose[0] > self.ema200[0]:  # or self.rsi < 30:
-                # Buy
-                self.buy()
-                self.log('BUY CREATE, %.2f' % self.dataclose[0])
+            # If not, check if the current candle closes above the 200 EMA
+            if self.dataclose[0] > self.ema200[0]:
 
-                self.macd_cross_up = False
+                # Check if the MACD lines crosses up or down
+                if self.crossover[0] > 0.0:
+                    self.macd_cross_up = True
+                elif self.crossover[0] < 0.0:
+                    self.macd_cross_up = False
 
-                # Place OCO for selling
-                self.take_profit = self.dataclose[0] * 2 - self.psar[0]
-                self.stop_loss = self.psar[0]
-                print('TAKE PROFIT = ' + str(self.take_profit))
-                print('STOP_LOSS = ' + str(self.stop_loss))
-                # oco_profit = self.sell(exectype=bt.Order.Limit, price=take_profit)
-                # oco_loss = self.sell(exectype=bt.Order.Stop, price=stop_loss, oco=oco_profit)
+                # If the MACD crosses up and the current candle closes above the parabolic SAR
+                if self.macd_cross_up and self.psar[0] < self.dataclose[0]:
+                    # Buy
+                    self.buy()
+                    self.log('BUY CREATE, %.2f' % self.dataclose[0])
+
+                    # Reset this variable for the next trade
+                    self.macd_cross_up = False
+
+                    # Calculate take profit and stop loss (for sell order)
+                    self.take_profit = self.dataclose[0] * 2 - self.psar[0]
+                    self.stop_loss = self.psar[0]
+                    print('TAKE PROFIT = ' + str(self.take_profit))
+                    print('STOP_LOSS = ' + str(self.stop_loss))
+                    # oco_profit = self.sell(exectype=bt.Order.Limit, price=take_profit)
+                    # oco_loss = self.sell(exectype=bt.Order.Stop, price=stop_loss, oco=oco_profit)
 
         else:
+            # We have an open position
+            # So check if the current candle hits the take profit or the stop loss and sell
             if self.dataclose[0] >= self.take_profit or self.dataclose[0] < self.stop_loss:
-                # SELL, SELL, SELL!!! (with all possible default parameters)
+                # Sell
                 self.log('SELL CREATE, %.2f' % self.dataclose[0])
 
                 # Keep track of the created order to avoid a 2nd order
