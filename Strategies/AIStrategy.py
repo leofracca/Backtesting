@@ -4,23 +4,13 @@ import backtrader as bt
 # Create a Stratey
 class AIStrategy(bt.Strategy):
 
-    params = (
-        # Standard MACD Parameters
-        ('macd1', 12),
-        ('macd2', 26),
-        ('macdsig', 9)
-    )
-
     def log(self, txt, dt=None):
         dt = dt or self.datas[0].datetime.date(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
         # MACD
-        self.macd = bt.indicators.MACD(self.data,
-                                       period_me1=self.params.macd1,
-                                       period_me2=self.params.macd2,
-                                       period_signal=self.params.macdsig)
+        self.macd = bt.indicators.MACDHisto()
         # Cross of macd line and signal line (of the MACD)
         self.crossover = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
 
@@ -67,9 +57,6 @@ class AIStrategy(bt.Strategy):
         if self.order:
             return  # pending order execution
 
-        # self.log('')
-        # print(self.macd_cross_up)
-
         # Check if we have any open position
         if not self.position:
             # If not, check if the current candle closes above the 200 EMA
@@ -95,15 +82,9 @@ class AIStrategy(bt.Strategy):
                     self.stop_loss = self.psar[0]
                     print('TAKE PROFIT = ' + str(self.take_profit))
                     print('STOP_LOSS = ' + str(self.stop_loss))
-                    # oco_profit = self.sell(exectype=bt.Order.Limit, price=take_profit)
-                    # oco_loss = self.sell(exectype=bt.Order.Stop, price=stop_loss, oco=oco_profit)
+                    print(self.psar[0])
+                    print(self.dataclose[0])
 
-        else:
-            # We have an open position
-            # So check if the current candle hits the take profit or the stop loss and sell
-            if self.dataclose[0] >= self.take_profit or self.dataclose[0] < self.stop_loss:
-                # Sell
-                self.log('SELL CREATE, %.2f' % self.dataclose[0])
-
-                # Keep track of the created order to avoid a 2nd order
-                self.order = self.sell()
+                    # Set the OCO sell order
+                    oco_profit = self.sell(exectype=bt.Order.Limit, price=self.take_profit)
+                    oco_loss = self.sell(exectype=bt.Order.Stop, price=self.stop_loss, oco=oco_profit)
