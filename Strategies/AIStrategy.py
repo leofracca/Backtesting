@@ -1,7 +1,6 @@
 import backtrader as bt
 
 
-# Create a Stratey
 class AIStrategy(bt.Strategy):
 
     def log(self, txt, dt=None):
@@ -29,8 +28,20 @@ class AIStrategy(bt.Strategy):
         # To keep track of pending orders
         self.order = None
 
-        self.reward = 1
+        # Reward for long positions (incremented at each profitable long trade, decremented otherwise)
+        # Reset to 1 when the price goes below the 200 EMA
+        # It represents the amount for each long trade
+        self.reward_long = 1
+        # Reward for short positions (incremented at each profitable short trade, decremented otherwise)
+        # Reset to 1 when the price goes above the 200 EMA
+        # It represents the amount for each short trade
+        self.reward_short = 1
+        # Check if the current trade is a short trade
         self.is_short_position = False
+
+        # To keep track of buy and sell prices
+        self.buy_price = 0
+        self.sell_price = 0
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
@@ -38,16 +49,22 @@ class AIStrategy(bt.Strategy):
             return
 
         # Check if an order has been completed
-        # Attention: broker could reject order if not enough cash
         if order.status in [order.Completed]:
             if order.isbuy():
                 self.log('BUY EXECUTED, %.2f' % order.executed.price)
                 self.buy_price = order.executed.price
+
+                if self.is_short_position:
+                    self.reward_short += (self.sell_price - self.buy_price) * 0.0001
+                    self.log('Closing short position at %.2f, PROFIT = %.2f$' % (self.stop_loss, self.sell_price - self.buy_price))
+
             elif order.issell():
                 self.log('SELL EXECUTED, %.2f' % order.executed.price)
-                sell_price = order.executed.price
+                self.sell_price = order.executed.price
 
-                #self.reward += (sell_price - self.buy_price) * 0.0001
+                if not self.is_short_position:
+                    self.reward_long += (self.sell_price - self.buy_price) * 0.0001
+                    self.log('Closing long position at %.2f, PROFIT = %.2f$' % (self.take_profit, self.sell_price - self.buy_price))
 
             self.bar_executed = len(self)
 
@@ -67,6 +84,7 @@ class AIStrategy(bt.Strategy):
             # If not, check if the current candle closes above the 200 EMA
             if self.dataclose[0] >= self.ema200[0]:
                 self.is_short_position = False
+                self.reward_short = 1  # Reset reward for short positions
 
                 # Check if the MACD lines crosses up or down
                 if self.crossover[0] > 0.0:
@@ -77,14 +95,7 @@ class AIStrategy(bt.Strategy):
                 # If the MACD crosses up and the current candle closes above the parabolic SAR
                 if self.macd_cross_up and self.psar[0] < self.dataclose[0]:
                     # Open a long position
-
-                    # How many bitcoin should we buy?
-                    amount = self.reward
-                    print(amount)
-
-                    # Buy
-                    self.buy(size=amount)
-                    self.log('BUY CREATE, %.2f' % self.dataclose[0])
+                    self.buy(size=self.reward_long)
 
                     # Calculate take profit and stop loss (for sell order)
                     self.take_profit = self.dataclose[0] * 2 - self.psar[0]
@@ -94,6 +105,7 @@ class AIStrategy(bt.Strategy):
 
             else:
                 self.is_short_position = True
+                self.reward_long = 1  # Reset reward for long positions
 
                 # Check if the MACD lines crosses up or down
                 if self.crossover[0] >= 0.0:
@@ -104,14 +116,7 @@ class AIStrategy(bt.Strategy):
                 # If the MACD crosses down and the current candle closes below the parabolic SAR
                 if not self.macd_cross_up and self.psar[0] > self.dataclose[0]:
                     # Open a short position
-
-                    # How many bitcoin should we short?
-                    amount = self.reward
-                    #print(amount)
-
-                    # Open the short
-                    self.sell(size=amount)
-                    self.log('SHORT CREATE, %.2f' % self.dataclose[0])
+                    self.sell(size=self.reward_short)
 
                     # Calculate take profit and stop loss (for sell order)
                     self.take_profit = self.dataclose[0] * 2 - self.psar[0]
@@ -124,18 +129,14 @@ class AIStrategy(bt.Strategy):
             if not self.is_short_position:
                 if self.data.high[0] >= self.take_profit:
                     # Long position PROFIT
-                    self.log('Closing long position in profit, %.2f' % self.take_profit)
                     self.close()
                 elif self.data.low[0] <= self.stop_loss:
                     # Long position LOSS
-                    self.log('Closing long position in loss, %.2f' % self.stop_loss)
                     self.close()
             else:
                 if self.data.high[0] >= self.stop_loss:
                     # Short position LOSS
-                    self.log('Closing short position in loss, %.2f' % self.stop_loss)
                     self.close()
                 elif self.data.low[0] <= self.take_profit:
                     # Short position PROFIT
-                    self.log('Closing short position in profit, %.2f' % self.take_profit)
                     self.close()
