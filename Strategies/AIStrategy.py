@@ -4,7 +4,7 @@ import backtrader as bt
 class AIStrategy(bt.Strategy):
 
     def log(self, txt, dt=None):
-        dt = dt or self.datas[0].datetime.date(0)
+        dt = dt or self.datas[0].datetime.datetime(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
