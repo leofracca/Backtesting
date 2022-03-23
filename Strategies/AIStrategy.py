@@ -102,8 +102,8 @@ class AIStrategy(bt.Strategy):
                     self.stop_loss = self.psar[0]
                     print('TAKE PROFIT = %.2f$' % self.take_profit)
                     print('STOP_LOSS = %.2f$' % self.stop_loss)
-                    oco_profit = self.sell(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_long)
-                    oco_loss = self.sell(exectype=bt.Order.Stop, price=self.stop_loss, size=self.reward_long, oco=oco_profit)
+                    self.oco_profit = self.sell(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_long)
+                    self.oco_loss = self.sell(exectype=bt.Order.Stop, price=self.stop_loss, size=self.reward_long, oco=self.oco_profit)
 
             else:
                 self.is_short_position = True
@@ -125,6 +125,24 @@ class AIStrategy(bt.Strategy):
                     self.stop_loss = self.psar[0]
                     print('TAKE PROFIT = %.2f$' % self.take_profit)
                     print('STOP_LOSS = %.2f$' % self.stop_loss)
-                    oco_profit = self.buy(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_short)
-                    oco_loss = self.buy(exectype=bt.Order.Stop, price=self.stop_loss, size=self.reward_short, oco=oco_profit)
+                    self.oco_profit = self.buy(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_short)
+                    self.oco_loss = self.buy(exectype=bt.Order.Stop, price=self.stop_loss, size=self.reward_short, oco=self.oco_profit)
 
+        else:
+            # We have an open position
+            if not self.is_short_position:
+                # Check if the price touches the 200EMA
+                # If so, immediately close the position and delete the pending orders
+                if self.data[0] < self.ema200[0]:
+                    # Long position LOSS
+                    self.sell(size=self.reward_long)
+                    self.cancel(self.oco_profit)
+                    self.cancel(self.oco_loss)
+            else:
+                # Then check if the price touches the 200EMA
+                # If so, immediately close the position and delete the pending orders
+                if self.data[0] > self.ema200[0]:
+                    # Short position LOSS
+                    self.buy(size=self.reward_short)
+                    self.cancel(self.oco_profit)
+                    self.cancel(self.oco_loss)
