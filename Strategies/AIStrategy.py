@@ -51,20 +51,20 @@ class AIStrategy(bt.Strategy):
         # Check if an order has been completed
         if order.status in [order.Completed]:
             if order.isbuy():
-                self.log('BUY EXECUTED, %.2f' % order.executed.price)
+                self.log('BUY EXECUTED, %.2f$' % order.executed.price)
                 self.buy_price = order.executed.price
 
                 if self.is_short_position:
                     self.reward_short += (self.sell_price - self.buy_price) * 0.0001
-                    self.log('Closing short position at %.2f, PROFIT = %.2f$' % (self.stop_loss, self.sell_price - self.buy_price))
+                    self.log('Closing short position at %.2f$, PROFIT = %.2f$' % (self.stop_loss, self.sell_price - self.buy_price))
 
             elif order.issell():
-                self.log('SELL EXECUTED, %.2f' % order.executed.price)
+                self.log('SELL EXECUTED, %.2f$' % order.executed.price)
                 self.sell_price = order.executed.price
 
                 if not self.is_short_position:
                     self.reward_long += (self.sell_price - self.buy_price) * 0.0001
-                    self.log('Closing long position at %.2f, PROFIT = %.2f$' % (self.take_profit, self.sell_price - self.buy_price))
+                    self.log('Closing long position at %.2f$, PROFIT = %.2f$' % (self.take_profit, self.sell_price - self.buy_price))
 
             self.bar_executed = len(self)
 
@@ -100,8 +100,10 @@ class AIStrategy(bt.Strategy):
                     # Calculate take profit and stop loss (for sell order)
                     self.take_profit = self.dataclose[0] * 2 - self.psar[0]
                     self.stop_loss = self.psar[0]
-                    print('TAKE PROFIT = ' + str(self.take_profit))
-                    print('STOP_LOSS = ' + str(self.stop_loss))
+                    print('TAKE PROFIT = %.2f$' % self.take_profit)
+                    print('STOP_LOSS = %.2f$' % self.stop_loss)
+                    oco_profit = self.sell(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_long)
+                    oco_loss = self.sell(exectype=bt.Order.Stop, price=self.stop_loss, size=self.reward_long, oco=oco_profit)
 
             else:
                 self.is_short_position = True
@@ -121,22 +123,8 @@ class AIStrategy(bt.Strategy):
                     # Calculate take profit and stop loss (for sell order)
                     self.take_profit = self.dataclose[0] * 2 - self.psar[0]
                     self.stop_loss = self.psar[0]
-                    print('TAKE PROFIT = ' + str(self.take_profit))
-                    print('STOP_LOSS = ' + str(self.stop_loss))
-        else:
-            # We have an open position (long or short)
-            # So check if the current candle hits the take profit or the stop loss and sell
-            if not self.is_short_position:
-                if self.data.high[0] >= self.take_profit:
-                    # Long position PROFIT
-                    self.close()
-                elif self.data.low[0] <= self.stop_loss:
-                    # Long position LOSS
-                    self.close()
-            else:
-                if self.data.high[0] >= self.stop_loss:
-                    # Short position LOSS
-                    self.close()
-                elif self.data.low[0] <= self.take_profit:
-                    # Short position PROFIT
-                    self.close()
+                    print('TAKE PROFIT = %.2f$' % self.take_profit)
+                    print('STOP_LOSS = %.2f$' % self.stop_loss)
+                    oco_profit = self.buy(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_short)
+                    oco_loss = self.buy(exectype=bt.Order.Stop, price=self.stop_loss, size=self.reward_short, oco=oco_profit)
+
