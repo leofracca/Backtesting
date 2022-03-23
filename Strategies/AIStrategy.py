@@ -66,8 +66,6 @@ class AIStrategy(bt.Strategy):
                     self.reward_long += (self.sell_price - self.buy_price) * 0.0001
                     self.log('Closing long position at %.2f$, PROFIT = %.2f$' % (self.take_profit, self.sell_price - self.buy_price))
 
-            self.bar_executed = len(self)
-
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
 
@@ -97,11 +95,7 @@ class AIStrategy(bt.Strategy):
                     # Open a long position
                     self.buy(size=self.reward_long)
 
-                    # Calculate take profit and stop loss (for sell order)
-                    self.take_profit = self.dataclose[0] * 2 - self.psar[0]
-                    self.stop_loss = self.psar[0]
-                    print('TAKE PROFIT = %.2f$' % self.take_profit)
-                    print('STOP_LOSS = %.2f$' % self.stop_loss)
+                    self.calculate_stop_loss_and_take_profit()
                     self.oco_profit = self.sell(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_long)
                     self.oco_loss = self.sell(exectype=bt.Order.Stop, price=self.stop_loss, size=self.reward_long, oco=self.oco_profit)
 
@@ -120,11 +114,7 @@ class AIStrategy(bt.Strategy):
                     # Open a short position
                     self.sell(size=self.reward_short)
 
-                    # Calculate take profit and stop loss (for sell order)
-                    self.take_profit = self.dataclose[0] * 2 - self.psar[0]
-                    self.stop_loss = self.psar[0]
-                    print('TAKE PROFIT = %.2f$' % self.take_profit)
-                    print('STOP_LOSS = %.2f$' % self.stop_loss)
+                    self.calculate_stop_loss_and_take_profit()
                     self.oco_profit = self.buy(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_short)
                     self.oco_loss = self.buy(exectype=bt.Order.Stop, price=self.stop_loss, size=self.reward_short, oco=self.oco_profit)
 
@@ -146,3 +136,10 @@ class AIStrategy(bt.Strategy):
                     self.buy(size=self.reward_short)
                     self.cancel(self.oco_profit)
                     self.cancel(self.oco_loss)
+
+    def calculate_stop_loss_and_take_profit(self):
+        # Calculate take profit and stop loss
+        self.take_profit = self.dataclose[0] * 2 - self.psar[0]
+        self.stop_loss = self.psar[0]
+        print('TAKE PROFIT = %.2f$' % self.take_profit)
+        print('STOP_LOSS = %.2f$' % self.stop_loss)
