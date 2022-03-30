@@ -43,6 +43,8 @@ class AIStrategy(bt.Strategy):
         self.buy_price = 0
         self.sell_price = 0
 
+        self.already_traded = False
+
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
             # Buy/Sell order submitted/accepted to/by broker - Nothing to do
@@ -55,6 +57,7 @@ class AIStrategy(bt.Strategy):
                 self.buy_price = order.executed.price
 
                 if self.is_short_position:
+                    # Update the reward for short positions
                     self.reward_short += (self.sell_price - self.buy_price) * 0.0001
                     self.log('Closing short position at %.2f$, PROFIT = %.2f$' % (self.stop_loss, self.sell_price - self.buy_price))
 
@@ -63,6 +66,7 @@ class AIStrategy(bt.Strategy):
                 self.sell_price = order.executed.price
 
                 if not self.is_short_position:
+                    # Update the reward for long positions
                     self.reward_long += (self.sell_price - self.buy_price) * 0.0001
                     self.log('Closing long position at %.2f$, PROFIT = %.2f$' % (self.take_profit, self.sell_price - self.buy_price))
 
@@ -78,22 +82,25 @@ class AIStrategy(bt.Strategy):
 
         # Check if we have any open position
         if not self.position:
+            # Check if the MACD lines crosses up or down
+            if self.crossover[0] > 0.0:
+                self.macd_cross_up = True
+                self.already_traded = False
+            elif self.crossover[0] < 0.0:
+                self.macd_cross_up = False
+                self.already_traded = False
 
             # If not, check if the current candle closes above the 200 EMA
             if self.dataclose[0] >= self.ema200[0]:
                 self.is_short_position = False
                 self.reward_short = 1  # Reset reward for short positions
 
-                # Check if the MACD lines crosses up or down
-                if self.crossover[0] > 0.0:
-                    self.macd_cross_up = True
-                else:  # self.crossover[0] <= 0.0
-                    self.macd_cross_up = False
-
                 # If the MACD crosses up and the current candle closes above the parabolic SAR
-                if self.macd_cross_up and self.psar[0] < self.dataclose[0]:
+                if self.macd_cross_up and self.psar[0] < self.dataclose[0] and not self.already_traded:
                     # Open a long position
+                    # print(self.reward_long)  # Uncomment this to see how much it will buy
                     self.buy(size=self.reward_long)
+                    self.already_traded = True
 
                     self.calculate_stop_loss_and_take_profit()
                     self.oco_profit = self.sell(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_long)
@@ -103,16 +110,12 @@ class AIStrategy(bt.Strategy):
                 self.is_short_position = True
                 self.reward_long = 1  # Reset reward for long positions
 
-                # Check if the MACD lines crosses up or down
-                if self.crossover[0] >= 0.0:
-                    self.macd_cross_up = True
-                else:  # self.crossover[0] < 0.0
-                    self.macd_cross_up = False
-
                 # If the MACD crosses down and the current candle closes below the parabolic SAR
-                if not self.macd_cross_up and self.psar[0] > self.dataclose[0]:
+                if not self.macd_cross_up and self.psar[0] > self.dataclose[0] and not self.already_traded:
                     # Open a short position
+                    # print(self.reward_short)  # Uncomment this to see how much it will short
                     self.sell(size=self.reward_short)
+                    self.already_traded = True
 
                     self.calculate_stop_loss_and_take_profit()
                     self.oco_profit = self.buy(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_short)

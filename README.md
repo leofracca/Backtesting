@@ -2,7 +2,7 @@
 
 ### Introduzione
 
-Il progetto è un programma che esegue backtesting di una strategia di trading di Bitcoin (coppia Bitcoin/Dollaro). Per questo progetto viene usato Bitcoin (o altre criptovalute) in quanto il mercato delle criptovalute è sempre aperto e in generale è più semplice rispetto a quello tradizionale, tuttavia, con qualche piccola modifica, questo programma funziona anche con le azioni del mercato tradizionale.
+Il progetto è un programma che esegue backtesting di una strategia di trading (applicata alla coppia Bitcoin/Dollaro). Per questo progetto viene usato Bitcoin (ma è facilmente adattabile anche alle altre criptovalute) in quanto il mercato delle criptovalute è sempre aperto e in generale è più semplice rispetto a quello tradizionale, permettendo così di evitare delle complessità che non hanno a che fare con l'obiettivo del progetto, tuttavia, con qualche piccola modifica, questo programma funziona anche con le azioni del mercato tradizionale.
 
 
 
@@ -98,6 +98,14 @@ else:
 
 Innanzitutto viene controllato se la posizione attuale è di tipo short o long. Se è long viene fatto un check sul prezzo: se è minore della 200EMA allora chiude la posizione (`self.sell(size=self.reward_long)`) e vengono cancellati gli ordini pendenti (quelli posti ai valori di stop loss e take profit, cioè gli ordini OCO). Se invece la posizione è short, si controlla se il prezzo diventa maggiore della 200EMA e, se lo è, viene chiusa la posizione e vengono cancellati gli ordini pendenti.
 
+Questo controllo, sul lungo termine e in periodi di lateralizzazione del prezzo in cui non c'è né una spinta rialzista né ribassista, e si generano molti falsi segnali, si rivela abbastanza utile. Per esempio le seguenti immagini rappresentano rispettivamente una simulazione senza questo controllo e una con il controllo (data di inizio simulazione: 01-03-2022, data di fine simulazione: 17-03-2022):
+
+![without_200EMA_stop](Docs/without_200EMA_stop.png)
+
+![with_200EMA_stop](Docs/with_200EMA_stop.png)
+
+Si noti come le perdite vengono contenute nel secondo caso (si passa da 95867.25 a 98603.40, partendo in entrambi i casi da 100000).
+
 
 
 ### Reward
@@ -143,14 +151,21 @@ Per questo progetto sono stati utilizzati i seguenti strumenti:
 - [Binance API](https://binance-docs.github.io/apidocs/spot/en/#change-log)
   - API fornite dall'exchange Binance
   - Permettono di interagire col sistema per ricavare informazioni sui mercati o sull'account personale
-  - Usate attraverso il wrapper per python [python-binance](https://github.com/sammchardy/python-binance) per ricavare i dati sui prezzi e generare il file [15min_BTC-USDT.csv](datas/15min_BTC-USDT.csv), che contiene tutti i prezzi della coppia BTC/USDT dal 01/01/2021 al 13/03/2022 con un timeframe di 15 minuti
+  - Usate attraverso il wrapper per python [python-binance](https://github.com/sammchardy/python-binance) per ricavare i dati sui prezzi e generare il file [15min_BTC-USDT.csv](datas/15min_BTC-USDT.csv), che contiene tutti i prezzi della coppia BTC/USDT dal 01/01/2022 al 30/03/2022 con un timeframe di 15 minuti
     - Il formato del file è il seguente: `Datetime,Open,High,Low,Close,Volume`
   - Il codice per generare il file è [generate_data.py](Utils/generate_data.py)
     - Ovviamente è possibile modificare tutti i parametri come la coppia scelta, il periodo, il timeframe, ...
 
 
 
-### Alcuni risultati
+### Risultati
 
-[Insert images here]
+Di seguito vengono riportati alcuni grafici derivati dalle simulazioni di periodi diversi.
+
+- Dal 01-01-2022 al 08-01-2022 (1 settimana, parametri di default)![one week from 01-01-2022](Docs/one_week_from_01-01-2022.png)
+- Dal 01-01-2022 al 15-01-2022 (2 settimane)![two weeks from 01-01-2022](Docs/two_weeks_from_01-01-2022.png)
+- Dal 01-01-2022 al 01-02-2022 (1 mese)![one_month_from_01-01-2022](Docs/one_month_from_01-01-2022.png)
+- Dal 01-01-2022 al 01-03-2022 (2 mesi)![two_months_from_01-01-2022](Docs/two_months_from_01-01-2022.png)
+- Dal 01-02-2022 al 08-02-2022 (1 settimana)![one_week_from_01-02-2022](Docs/one_week_from_01-02-2022.png)
+- Dal 01-03-2022 al 08-03-2022 (1 settimana)![one_week_from_01-03-2022](Docs/one_week_from_01-03-2022.png)
 

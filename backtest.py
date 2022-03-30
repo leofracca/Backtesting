@@ -17,12 +17,12 @@ def parse_arguments():
     if args.startdate:
         startdate = args.startdate
     else:
-        startdate = datetime.datetime(2022, 2, 1)
+        startdate = datetime.datetime(2022, 1, 1)
 
     if args.enddate:
         enddate = args.enddate
     else:
-        enddate = datetime.datetime(2022, 2, 8)
+        enddate = datetime.datetime(startdate.year, startdate.month, startdate.day + 7)
 
     return startdate, enddate
 
@@ -52,9 +52,9 @@ def run_simulation(startdate, enddate):
     cerebro.adddata(data)
     cerebro.addstrategy(AIStrategy)  # Choose a strategy
 
-    print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    print('Starting Portfolio Value: %.2f$' % cerebro.broker.getvalue())
     cerebro.run()
-    print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    print('Final Portfolio Value: %.2f$' % cerebro.broker.getvalue())
 
     cerebro.plot(style='candlestick')
 
