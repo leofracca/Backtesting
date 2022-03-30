@@ -6,7 +6,7 @@ from datetime import datetime
 
 client = Client('api_key', 'api_secret')
 
-candlesticks = client.get_historical_klines('BTCUSDT', Client.KLINE_INTERVAL_15MINUTE, "1 Jan, 2021")
+candlesticks = client.get_historical_klines('BTCUSDT', Client.KLINE_INTERVAL_15MINUTE, "1 Jan, 2022")
 
 f = open('15min_BTC-USDT.csv', 'w', newline='')
 csv_writer = csv.writer(f, delimiter=',')
