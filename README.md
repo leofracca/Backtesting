@@ -51,10 +51,12 @@ Viceversa si apre una posizione **short** se
 Inoltre, una volta creato l'ordine (sia esso long o short), vengono calcolati *stop loss* e *take profit*, ovvero dei prezzi target che, una volta raggiunti innescano degli ordini che chiudono la posizione.
 Se il prezzo raggiunge il valore di take profit, allora significa che la posizione viene chiusa in profitto, se invece colpisce lo stop loss, allora significa che la posizione viene chiusa in perdita (lo stop loss viene messo per evitare di avere perdite troppo elevate).
 Lo stop loss viene posto al valore attuale di PSAR, mentre il take profit viene posto facendo in modo che il rapporto del rischio guadagno-perdita sia 1:1. In formule:
-$$
-take\_profit = price * 2 - PSAR\newline
-stop\_loss = PSAR
-$$
+
+<img src="https://render.githubusercontent.com/render/math?math=\large{take\_profit = price * 2 - PSAR}#gh-light-mode-only" />
+<img src="https://render.githubusercontent.com/render/math?math=\large{stop\_loss = PSAR}#gh-light-mode-only" />
+<img src="https://render.githubusercontent.com/render/math?math=\large{\color{white}take\_profit = price * 2 - PSAR}#gh-dark-mode-only" />
+<img src="https://render.githubusercontent.com/render/math?math=\large{\color{white}stop\_loss = PSAR}#gh-dark-mode-only" />
+
 In codice:
 
 ```python
