@@ -160,6 +160,25 @@ Per questo progetto sono stati utilizzati i seguenti strumenti:
 
 
 
+### Architettura del progetto
+
+Il progetto è stato organizzato come segue:
+
+- Lo script [backtest.py](backtest.py) è lo script da eseguire per far partire la simulazione
+  - Si occupa di fare un parsing degli argomenti in input (attualmente possono essere solo la data di inizio e quella di fine, entrambe opzionali), di fare un setup iniziale, di eseguire la simulazione con la strategia selezionata e infine stampare i risultati e aprire una finestra con il grafico
+- Nella cartella [Strategies](Strategies) sono presenti tutte le strategie implementate. Attualmente ce ne sono due: [AIStrategy](Strategies/AIStrategy.py), che rappresenta quella di questo progetto e testStrategy, che può essere visto semplicemente come un test iniziale per controllare che tutto funzioni correttamente (presa dalla documentazione di Backtrader)
+  - *Si noti come, combinando questi primi due punti è possibile eseguire backtest.py usando strategie diverse, per esempio passando quella che si vuole testare come parametro, e compararle tra di loro*
+  - La classe AIStrategy implementa i seguenti metodi (vengono riportati solo quelli derivati dalla superclasse Strategy di Backtrader):
+    - log(): utile per vedere quando viene fatto un ordine, con prezzo, tipo, timestamp e profitto
+    - \__init__(): viene eseguito all'inizio e serve per inizializzare i vari indicatori e variabili
+    - next(): è il cuore della strategia. Viene eseguito a ogni candela e si occupa di effettuare i vari calcoli per capire cosa bisogna fare. Ad esempio calcola se c'è stato un crossover nel MACD, controlla se c'è una posizione aperta o meno e in base a ciò controlla se bisogna aprirne o chiuderne
+- Lo script [generate_data.py](Utils/generate_data.py) all'interno della cartella Utils, serve per generare i dataset, come spiegato nel capitolo precedente
+- In [datas](datas) sono contenuti i dataset, come spiegato nel capitolo precedente
+
+***In questo modo il sistema è molto flessibile ed è potenzialmente possibile testarlo con strategie diverse, dataset diversi (anche con timeframe diversi), intervalli diversi, ...***
+
+
+
 ### Risultati
 
 Di seguito vengono riportati alcuni grafici derivati dalle simulazioni di periodi diversi.
