@@ -106,7 +106,7 @@ Questo controllo, sul lungo termine e in periodi di lateralizzazione del prezzo 
 
 ![with_200EMA_stop](Docs/with_200EMA_stop.png)
 
-Si noti come le perdite vengono contenute nel secondo caso (si passa da 95867.25 a 98603.40, partendo in entrambi i casi da 100000).
+Si noti come le perdite vengono contenute nel secondo caso (nel primo caso si termina con 95867.25\$, nel secondo con 98603.40\$, partendo in entrambi i casi da 100000\$).
 
 
 
@@ -149,7 +149,7 @@ Inoltre se il prezzo scende sotto la 200EMA, `reward_long` viene resettata a 1, 
 Per questo progetto sono stati utilizzati i seguenti strumenti:
 
 - [Backtrader](https://www.backtrader.com/) (con modulo Matplotlib per la visualizzazione dei grafici)
-  - Libreria python che permette di applicare delle strategie di trading sui dati dell'asset su cui si intende fare trading
+  - Libreria python che permette di fare backtesting applicando delle strategie di trading sui dati dell'asset su cui si intende fare trading
 - [Binance API](https://binance-docs.github.io/apidocs/spot/en/#change-log)
   - API fornite dall'exchange Binance
   - Permettono di interagire col sistema per ricavare informazioni sui mercati o sull'account personale
