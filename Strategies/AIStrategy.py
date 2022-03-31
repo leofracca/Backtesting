@@ -43,6 +43,7 @@ class AIStrategy(bt.Strategy):
         self.buy_price = 0
         self.sell_price = 0
 
+        # To check if we already did a trade with the current parameters
         self.already_traded = False
 
     def notify_order(self, order):
@@ -91,7 +92,7 @@ class AIStrategy(bt.Strategy):
                 self.already_traded = False
 
             # If not, check if the current candle closes above the 200 EMA
-            if self.dataclose[0] >= self.ema200[0]:
+            if self.dataclose[0] >= self.ema200[0] and self.data.open[0] >= self.ema200[0]:
                 self.is_short_position = False
                 self.reward_short = 1  # Reset reward for short positions
 
@@ -106,7 +107,7 @@ class AIStrategy(bt.Strategy):
                     self.oco_profit = self.sell(exectype=bt.Order.Limit, price=self.take_profit, size=self.reward_long)
                     self.oco_loss = self.sell(exectype=bt.Order.Stop, price=self.stop_loss, size=self.reward_long, oco=self.oco_profit)
 
-            else:
+            elif self.dataclose[0] < self.ema200[0] and self.data.open[0] < self.ema200[0]:
                 self.is_short_position = True
                 self.reward_long = 1  # Reset reward for long positions
 
