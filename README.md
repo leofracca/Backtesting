@@ -2,7 +2,7 @@
 
 ### Introduzione
 
-Il progetto è un programma che esegue backtesting di una strategia di trading (applicata alla coppia Bitcoin/Dollaro). Per questo progetto viene usato Bitcoin (ma è facilmente adattabile anche alle altre criptovalute) in quanto il mercato delle criptovalute è sempre aperto e in generale è più semplice rispetto a quello tradizionale, permettendo così di evitare delle complessità che non hanno a che fare con l'obiettivo del progetto, tuttavia, con qualche piccola modifica, questo programma funziona anche con le azioni del mercato tradizionale.
+Il progetto è un programma che esegue backtesting di una strategia di trading (applicata alla coppia Bitcoin/Dollaro). Per questo progetto viene usato Bitcoin (ma è facilmente adattabile anche alle altre criptovalute) in quanto il mercato delle criptovalute è sempre aperto e in generale è più semplice rispetto a quello tradizionale, permettendo così di evitare delle complessità che non hanno a che fare con l'obiettivo del progetto. Tuttavia, con qualche piccola modifica, questo programma funziona anche con le azioni del mercato tradizionale.
 
 
 
@@ -106,7 +106,7 @@ Questo controllo, sul lungo termine e in periodi di lateralizzazione del prezzo 
 
 ![with_200EMA_stop](Docs/with_200EMA_stop.png)
 
-Si noti come le perdite vengono contenute nel secondo caso (nel primo caso si termina con 95867.25\$, nel secondo con 98603.40\$, partendo in entrambi i casi da 100000\$).
+Si noti come le perdite vengono contenute nel secondo caso (nel primo caso si termina con 94543.69\$, nel secondo con 99541.02\$, partendo in entrambi i casi da 100000\$).
 
 
 
