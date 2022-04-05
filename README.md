@@ -110,14 +110,17 @@ Si noti come le perdite vengono contenute nel secondo caso (nel primo caso si te
 
 
 
-### Reward
+### AIStrategy e Reward
 
+Rispetto al video, viene fatta un'altra modifica. Infatti la strategia [AIStrategy](Strategies/AIStrategy.py) (si veda il paragrafo "Architettura del progetto") implementa un meccanismo basato su reward, utile per massimizzare il profitto e/o limitare le perdite. Il reward viene aggiornato ogni volta che viene chiusa una posizione e può aumentare o diminuire in base al fatto che la posizione sia stata chiusa con profitto o perdita. Il suo valore rappresenta anche l'amount da investire per il prossimo trade, che quindi sarà influenzato dalla storia dei trade passati (perché avranno modificato il reward, che rappresenta anche l'amount per questo trade).
 Ogni trade produce un **reward**. *Più il reward è alto, più soldi verranno investiti nei futuri trade.*
 *Se il trade produce un profitto, il reward complessivo cresce, altrimenti diminuisce.* L'idea che c'è dietro è che se tanti trade consecutivi producono profitto, allora la tendenza è generalmente rialzista (per posizioni long; ribassista se si parla di posizioni short), quindi conviene aumentare il carico per massimizzare il guadagno. Se invece tanti trade producono una perdita, potrebbe essere durante un periodo di lateralizzazione del prezzo, con molti falsi segnali e quindi conviene ridurre l'ammontare di soldi per trade per minimizzare il valore di altre possibili perdite.
 
 Vengono usate due variabili per mantenere il valore dei reward: una per i trade long (`reward_long`) e una per quelli short (`reward_short`), entrambe inizializzate a 1. Queste vengono passate come parametro alla funzione per aprire una posizione (`self.buy(size=self.reward_long)` per posizioni long e `self.sell(size=self.reward_short)` per posizioni short) e rappresentano l'amount da investire (1 significa 1 Bitcoin).
 `reward_long` viene modificata ad ogni trade di tipo long (cioè sopra la 200EMA): come spiegato precedentemente se la posizione viene aperta a un prezzo e chiusa a un prezzo più alto, `reward_long` cresce, altrimenti diminuisce.
 `reward_short` viene modificata ad ogni trade di tipo short (cioè sotto la 200EMA): se la posizione viene aperta a un prezzo e chiusa a un prezzo più basso, `reward_short` cresce, altrimenti diminuisce.
+
+Per esempio, supponendo che n trade passati (n >= 1) abbiano generato profitto (quindi il valore di reward sarà maggiore di 1, cioè il valore di default), probabilmente il periodo in considerazione ha una spinta rialzista abbastanza marcata, quindi potrebbe essere conveniente investire di più nel prossimo trade (cioè invece di comprare 1 Bitcoin, ne compra valore_reward, con valore_reward > 1), perché è probabile che anch'esso chiuderà in profitto. Viceversa se n trade passati (n >= 1) hanno generato delle perdite, probabilmente il periodo in considerazione non ha un momentum ben definito, quindi la probabilità di generare ulteriori perdite non è così bassa e conviene investire di meno nel prossimo trade (cioè invece di comprare 1 Bitcoin, ne compra valore_reward, con valore_reward < 1) per essere più cauti e nel peggiore dei casi contenere ulteriori perdite.
 
 Il calcolo del reward è il seguente: per ogni posizione che viene chiusa, viene calcolata la differenza tra il prezzo di vendita e quello di acquisto e il risultato moltiplicato per un fattore per normalizzare il valore in base al prezzo della valuta su cui si stanno eseguendo i trade e a quanti soldi complessivi si possono investire (in questo caso è stato scelto 0.0001 come fattore). Poi si somma questo valore al valore attuale di `reward_long` se la posizione appena chiusa è di tipo long, altrimenti si somma al valore attuale di `reward_short` nel caso di posizioni short.
 Di seguito il codice (per motivi di chiarezza non vengono riportate tutte le istruzioni di log o non strettamente necessarie al calcolo del reward, anche se sono presenti nel codice completo):
@@ -181,12 +184,23 @@ Il progetto è stato organizzato come segue:
 
 ### Risultati
 
-Di seguito vengono riportati alcuni grafici derivati dalle simulazioni di periodi diversi.
+Di seguito vengono riportati alcuni grafici derivati dalle simulazioni di periodi diversi (e viene fatto un confronto tra la strategia che implementa il calcolo del reward e la stessa strategia senza reward).
 
 - Dal 01-01-2022 al 08-01-2022 (1 settimana, parametri di default)![one week from 01-01-2022](Docs/one_week_from_01-01-2022.png)
+- Dal 01-01-2022 al 08-01-2022 (1 settimana, parametri di default, no reward)![one week from 01-01-2022](Docs/one_week_from_01-01-2022_no_reward.png)
 - Dal 01-01-2022 al 15-01-2022 (2 settimane)![two weeks from 01-01-2022](Docs/two_weeks_from_01-01-2022.png)
+- Dal 01-01-2022 al 15-01-2022 (2 settimane, no reward)![two weeks from 01-01-2022](Docs/two_weeks_from_01-01-2022_no_reward.png)
 - Dal 01-01-2022 al 01-02-2022 (1 mese)![one_month_from_01-01-2022](Docs/one_month_from_01-01-2022.png)
+- Dal 01-01-2022 al 01-02-2022 (1 mese, no reward)![one_month_from_01-01-2022](Docs/one_month_from_01-01-2022_no_reward.png)
 - Dal 01-01-2022 al 01-03-2022 (2 mesi)![two_months_from_01-01-2022](Docs/two_months_from_01-01-2022.png)
+- Dal 01-01-2022 al 01-03-2022 (2 mesi, no reward)![two_months_from_01-01-2022](Docs/two_months_from_01-01-2022_no_reward.png)
 - Dal 01-02-2022 al 08-02-2022 (1 settimana)![one_week_from_01-02-2022](Docs/one_week_from_01-02-2022.png)
+- Dal 01-02-2022 al 08-02-2022 (1 settimana, no reward)![one_week_from_01-02-2022](Docs/one_week_from_01-02-2022_no_reward.png)
 - Dal 01-03-2022 al 08-03-2022 (1 settimana)![one_week_from_01-03-2022](Docs/one_week_from_01-03-2022.png)
+- Dal 01-03-2022 al 08-03-2022 (1 settimana, no reward)![one_week_from_01-03-2022](Docs/one_week_from_01-03-2022_no_reward.png)
 
+Si può notare come questa strategia funzioni meglio nei periodi in cui il prezzo ha una direzione ben precisa rialzista o ribassista, ma meno quando è in lateralizzazione. Questo perché in quel caso gli indicatori generano molti più falsi segnali, e quindi i profitti sono molto bassi o peggio, si hanno delle perdite. Per esempio lo si vede molto bene nella prima immagine, dove la maggior parte delle giornate il prezzo rimane stabile (circa 48000\$) e passa molto spesso da sopra a sotto la 200EMA. L'equilibrio viene rotto molto bruscamente al quinto giorno al ribasso (si passa a 43000\$, generando infatti un profitto chiudendo una posizione short), ma poi ricomincia un nuovo equilibrio (tra i 43000\$ e i 41000\$). Tuttavia le potenziali perdite vengono minimizzate dall'osservazione fatta in precedenza, cioè di chiudere le posizioni se il prezzo tocca la 200EMA, che si è rivelata molto buona.
+In generale il discorso appena fatto vale per tutti gli altri grafici e si noti quindi come, quando il prezzo rimane stabile in un certo range, le perdite sono molte di più rispetto a quando non lo è. Questo pattern si vede molto bene soprattutto nei grafici di più lungo periodo, come quello di 1 mese o quello di 2 mesi.
+
+Per quello che riguarda il discorso sul reward, invece, si nota come in generale abbia funzionato relativamente bene. Infatti, tranne nei primi due esempi (dal 01-01-2022 al 08-01-2022 e dal 01-01-2022 al 15-01-2022), in cui c'è una perdita minima (in generale per periodi brevi la differenza è poca), la versione che implementa il calcolo del reward ha generato più profitto rispetto a quella che non lo tiene in considerazione. Le posizioni vengono aperte con investimenti maggiori, quindi sia i profitti sia le perdite hanno un valore maggiore rispetto alla versione senza reward se il reward precedente è maggiore di 1 (saranno minori se è minore di 1, anche se quest'ultimo capita raramente, in quanto se il reward diventa minore di 1 significa che probabilmente molto presto avverrà un cambio di trend; per esempio se il reward delle posizioni long diventa minore di 1, quasi sempre subito dopo il prezzo passa sotto la 200EMA e quindi si passa ad aprire posizioni short, con il relativo reward (si ricorda che sono 2 variabili separate)).
+Tuttavia, se l'upper bound per prendere il profitto rimane sempre il take profit, il lower bound non è sempre lo stop loss, ma può diventare la 200EMA. Questo contribuisce molto ad avere profitti più alti e a contenere il prezzo delle perdite, generando così, maggiore profitto rispetto alla versione senza reward (si vedano per esempio i grafici delle due implementazioni di 1 mese e 2 mesi).
