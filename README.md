@@ -1,5 +1,3 @@
-## Progetto di Fondamenti di intelligenza artificiale
-
 ### Introduction
 
 The project is a program that performs backtesting of a trading strategy (applied to the Bitcoin/US Dollar pair). Bitcoin is used for this project (but it can easily be adapted to other cryptocurrencies) because the cryptocurrency market is always open and generally simpler compared to the traditional market, thus avoiding complexities unrelated to the project's objective. However, with some minor modifications, this program also works with traditional stock market shares.
