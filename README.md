@@ -1,63 +1,63 @@
 ## Progetto di Fondamenti di intelligenza artificiale
 
-### Introduzione
+### Introduction
 
-Il progetto è un programma che esegue backtesting di una strategia di trading (applicata alla coppia Bitcoin/Dollaro). Per questo progetto viene usato Bitcoin (ma è facilmente adattabile anche alle altre criptovalute) in quanto il mercato delle criptovalute è sempre aperto e in generale è più semplice rispetto a quello tradizionale, permettendo così di evitare delle complessità che non hanno a che fare con l'obiettivo del progetto. Tuttavia, con qualche piccola modifica, questo programma funziona anche con le azioni del mercato tradizionale.
+The project is a program that performs backtesting of a trading strategy (applied to the Bitcoin/US Dollar pair). Bitcoin is used for this project (but it can easily be adapted to other cryptocurrencies) because the cryptocurrency market is always open and generally simpler compared to the traditional market, thus avoiding complexities unrelated to the project's objective. However, with some minor modifications, this program also works with traditional stock market shares.
 
 
+### Strategy
 
-### Strategia
+The strategy used is explained in [this video](https://www.youtube.com/watch?v=sbKTRVWppZY).
 
-La strategia utilizzata viene spiegata [in questo video](https://www.youtube.com/watch?v=sbKTRVWppZY).
-Riassumendolo utilizza tre indicatori:
+In summary, it uses three indicators:
 
-- [MACD](https://en.wikipedia.org/wiki/MACD)
-  - Calcolato usando 3 EMA rispettivamente di periodi 12, 26 e 9
-  - La 12EMA e la 26EMA vengono sottratte tra di loro per calcolare la *MACD Line*
-    - Molto sensibile al cambiamento del prezzo
-  - Viene calcolata la *Signal Line*, cioè una 9EMA della MACD Line
-    - Poco sensibile al cambiamento del prezzo
-  - Quando la MACD Line e la Signal Line incrociano a rialzo (ovvero la MACD Line passa da sotto a sopra la Signal Line) è un segnale di acquisto, viceversa se incrociano a ribasso (la MACD Line passa da sopra a sotto la Signal Line) si genera un segnale di vendita
-  - Opzionalmente è possibile introdurre anche un istogramma che rappresenta la differenza tra la MACD Line e la Signal Line, ma non è obbligatorio
-  
-  ![MACD](Docs/MACD.png)
-  
-- [Parabolic SAR (o PSAR)](https://en.wikipedia.org/wiki/Parabolic_SAR)
-  - Rappresentato come una serie di punti
-  - Se i punti sono sotto le candele, indicano un trend rialzista
-  - Se i punti sono sopra le candele, indicano un trend ribassista
-  
-  ![PSAR](Docs/ParabolicSAR.png)
-  
-- [200EMA (Exponential Moving Average)](https://en.wikipedia.org/wiki/Moving_average)
-  - Rappresenta una media mobile esponenziale con periodo 200
-  - Se è sotto le candele, indica un trend rialzista
-  - Se è sopra le candele, indica un trend ribassista
-  
-  ![200EMA](Docs/200EMA.png)
+1. [MACD (Moving Average Convergence Divergence)](https://en.wikipedia.org/wiki/MACD):
+   - Calculated using 3 Exponential Moving Averages (EMAs) with periods of 12, 26, and 9, respectively.
+   - The 12 EMA and the 26 EMA are subtracted to calculate the *MACD Line*.
+     - Highly sensitive to price changes.
+   - The *Signal Line* is calculated as a 9 EMA of the MACD Line.
+     - Less sensitive to price changes.
+   - When the MACD Line crosses above the Signal Line (bullish crossover), it generates a buy signal, and vice versa for a bearish crossover (MACD Line crosses below Signal Line).
+   - Optionally, you can introduce a histogram representing the difference between the MACD Line and the Signal Line, but it's not mandatory.
 
-Osservando tutti i segnali dati da questi indicatori si aprono o chiudono le posizioni. In particolare si effettua un acquisto (si apre una posizione **long**) se 
+   ![MACD](Docs/MACD.png)
 
-1. il prezzo è sopra la 200EMA
-2. c'è un crossover rialzista tra la MACD Line e la Signal Line
-3. i valori di PSAR sono sotto le candele.
+2. [Parabolic SAR (PSAR)](https://en.wikipedia.org/wiki/Parabolic_SAR):
+   - Represented as a series of points.
+   - If the points are below the candles, they indicate a bullish trend.
+   - If the points are above the candles, they indicate a bearish trend.
 
-Viceversa si apre una posizione **short** se
+   ![PSAR](Docs/ParabolicSAR.png)
 
-1. il prezzo è sotto la 200EMA
-2. c'è un crossover ribassista tra la MACD Line e la Signal Line
-3. i valori di PSAR sono sopra le candele.
+3. [200EMA (Exponential Moving Average)](https://en.wikipedia.org/wiki/Moving_average):
+   - Represents an exponential moving average with a period of 200.
+   - If it's below the candles, it indicates a bullish trend.
+   - If it's above the candles, it indicates a bearish trend.
 
-Inoltre, una volta creato l'ordine (sia esso long o short), vengono calcolati *stop loss* e *take profit*, ovvero dei prezzi target che, una volta raggiunti innescano degli ordini che chiudono la posizione.
-Se il prezzo raggiunge il valore di take profit, allora significa che la posizione viene chiusa in profitto, se invece colpisce lo stop loss, allora significa che la posizione viene chiusa in perdita (lo stop loss viene messo per evitare di avere perdite troppo elevate).
-Lo stop loss viene posto al valore attuale di PSAR, mentre il take profit viene posto facendo in modo che il rapporto del rischio guadagno-perdita sia 1:1. In formule:
+   ![200EMA](Docs/200EMA.png)
+
+Positions are opened or closed based on the signals given by these indicators. In particular, a long (buy) position is initiated when:
+
+1. The price is above the 200EMA.
+2. There is a bullish crossover between the MACD Line and the Signal Line.
+3. The PSAR values are below the candles.
+
+Conversely, a short (sell) position is initiated when:
+
+1. The price is below the 200EMA.
+2. There is a bearish crossover between the MACD Line and the Signal Line.
+3. The PSAR values are above the candles.
+
+Furthermore, once an order (either long or short) is created, stop loss and take profit prices are calculated. These are target prices that, when reached, trigger orders to close the position. If the price reaches the take profit value, the position is closed at a profit. If it hits the stop loss, the position is closed at a loss (the stop loss is set to prevent excessive losses).
+
+The stop loss is placed at the current PSAR value, while the take profit is set to ensure a risk-reward ratio of 1:1. Formally:
 
 <img src="https://render.githubusercontent.com/render/math?math=\large{take\_profit = price * 2 - PSAR}#gh-light-mode-only" />
 <img src="https://render.githubusercontent.com/render/math?math=\large{stop\_loss = PSAR}#gh-light-mode-only" />
 <img src="https://render.githubusercontent.com/render/math?math=\large{\color{white}take\_profit = price * 2 - PSAR}#gh-dark-mode-only" />
 <img src="https://render.githubusercontent.com/render/math?math=\large{\color{white}stop\_loss = PSAR}#gh-dark-mode-only" />
 
-In codice:
+The code is:
 
 ```python
 def calculate_stop_loss_and_take_profit(self):
@@ -66,17 +66,17 @@ def calculate_stop_loss_and_take_profit(self):
     self.stop_loss = self.psar[0]
 ```
 
-In `dataclose[0]` è presente il prezzo di chiusura dell'ultima candela, mentre in `psar[0]` l'ultimo valore calcolato di PSAR.
+In `dataclose[0]`, you have the closing price of the last candle, while in `psar[0]`, you have the last calculated value of PSAR.
 
-Il calcolo è lo stesso sia per posizioni long che posizioni short.
+The calculation is the same for both long and short positions.
 
-Una volta calcolati stop loss e take profit viene creato un ordine di tipo OCO (One Cancels the Other): è un insieme di ordini, dove il primo che viene eseguito cancella tutti gli altri. In questo caso gli ordini saranno 2: uno per chiudere la posizione allo stop loss e uno al take profit. Quando il prezzo raggiunge uno dei due valori, viene eseguito l'ordine corrispondente, chiusa la posizione e cancellato l'altro ordine.
+Once the stop loss and take profit are calculated, an OCO (One Cancels the Other) order is created. This is a set of orders where the first one executed cancels all the others. In this case, there will be two orders: one to close the position at the stop loss and one at the take profit. When the price reaches one of these two values, the corresponding order is executed, the position is closed, and the other order is canceled.
 
 
 
-### Osservazioni
+### Observations
 
-Rispetto alla strategia mostrata nel video, è stato scelto di aggiungere un ulteriore check sulle oscillazioni del prezzo quando c'è una posizione aperta. Nella fase di testing si è notato che quando il prezzo supera (al ribasso se la posizione è long, al rialzo se è short) la 200EMA, poi la maggior parte delle volte raggiunge lo stop loss. Dunque nel caso in cui si verifichi questa situazione, conviene chiudere la posizione al prezzo corrente (cioè la 200EMA), invece di aspettare di raggiungere lo stop loss. In codice:
+Compared to the strategy shown in the video, it was chosen to add an additional check on price fluctuations when a position is open. During the testing phase, it was observed that when the price crosses (downward if the position is long, upward if it is short) the 200EMA, most of the time it eventually reaches the stop loss. Therefore, in the event of this situation, it is advisable to close the position at the current price (i.e., the 200EMA), instead of waiting to reach the stop loss.
 
 ```python
 # We have an open position
@@ -98,32 +98,36 @@ else:
         self.cancel(self.oco_loss)
 ```
 
-Innanzitutto viene controllato se la posizione attuale è di tipo short o long. Se è long viene fatto un check sul prezzo: se è minore della 200EMA allora chiude la posizione (`self.sell(size=self.reward_long)`) e vengono cancellati gli ordini pendenti (quelli posti ai valori di stop loss e take profit, cioè gli ordini OCO). Se invece la posizione è short, si controlla se il prezzo diventa maggiore della 200EMA e, se lo è, viene chiusa la posizione e vengono cancellati gli ordini pendenti.
+First of all, it checks whether the current position is long or short. If it's long, it performs a price check: if the price is lower than the 200EMA, it closes the position (`self.sell(size=self.reward_long)`) and cancels any pending orders (those placed at stop loss and take profit values, i.e., the OCO orders). If the position is short, it checks if the price becomes higher than the 200EMA, and if it does, it closes the position and cancels pending orders.
 
-Questo controllo, sul lungo termine e in periodi di lateralizzazione del prezzo in cui non c'è né una spinta rialzista né ribassista, e si generano molti falsi segnali, si rivela abbastanza utile. Per esempio le seguenti immagini rappresentano rispettivamente una simulazione senza questo controllo e una con il controllo (data di inizio simulazione: 01-03-2022, data di fine simulazione: 17-03-2022):
+This check proves to be quite useful in the long term and during periods of price consolidation when there is neither a bullish nor a bearish trend, and many false signals are generated. For example, the following images represent a simulation without this check and one with the check (simulation start date: 01-03-2022, simulation end date: 17-03-2022):
 
 ![without_200EMA_stop](Docs/without_200EMA_stop.png)
 
 ![with_200EMA_stop](Docs/with_200EMA_stop.png)
 
-Si noti come le perdite vengono contenute nel secondo caso (nel primo caso si termina con 94543.69\$, nel secondo con 99541.02\$, partendo in entrambi i casi da 100000\$).
+It's worth noting how losses are contained in the second case (in the first case, it ends with \$94,543.69, and in the second case, with \$99,541.02, starting from \$100,000 in both cases).
 
 
 
 ### AIStrategy e Reward
 
-Rispetto al video, viene fatta un'altra modifica. Infatti la strategia [AIStrategy](Strategies/AIStrategy.py) (si veda il paragrafo "Architettura del progetto") implementa un meccanismo basato su reward, utile per massimizzare il profitto e/o limitare le perdite. Il reward viene aggiornato ogni volta che viene chiusa una posizione e può aumentare o diminuire in base al fatto che la posizione sia stata chiusa con profitto o perdita. Il suo valore rappresenta anche l'amount da investire per il prossimo trade, che quindi sarà influenzato dalla storia dei trade passati (perché avranno modificato il reward, che rappresenta anche l'amount per questo trade).
-Ogni trade produce un **reward**. *Più il reward è alto, più soldi verranno investiti nei futuri trade.*
-*Se il trade produce un profitto, il reward complessivo cresce, altrimenti diminuisce.* L'idea che c'è dietro è che se tanti trade consecutivi producono profitto, allora la tendenza è generalmente rialzista (per posizioni long; ribassista se si parla di posizioni short), quindi conviene aumentare il carico per massimizzare il guadagno. Se invece tanti trade producono una perdita, potrebbe essere durante un periodo di lateralizzazione del prezzo, con molti falsi segnali e quindi conviene ridurre l'ammontare di soldi per trade per minimizzare il valore di altre possibili perdite.
+Compared to the video, another modification has been made. The strategy [AIStrategy](Strategies/AIStrategy.py) (see the "Project Architecture" section) implements a mechanism based on rewards, which is useful for maximizing profit and/or limiting losses. The reward is updated every time a position is closed and can increase or decrease depending on whether the position was closed with a profit or a loss. Its value also represents the amount to invest in the next trade, which is influenced by the history of past trades (because they have modified the reward, which also represents the amount for this trade).
 
-Vengono usate due variabili per mantenere il valore dei reward: una per i trade long (`reward_long`) e una per quelli short (`reward_short`), entrambe inizializzate a 1. Queste vengono passate come parametro alla funzione per aprire una posizione (`self.buy(size=self.reward_long)` per posizioni long e `self.sell(size=self.reward_short)` per posizioni short) e rappresentano l'amount da investire (1 significa 1 Bitcoin).
-`reward_long` viene modificata ad ogni trade di tipo long (cioè sopra la 200EMA): come spiegato precedentemente se la posizione viene aperta a un prezzo e chiusa a un prezzo più alto, `reward_long` cresce, altrimenti diminuisce.
-`reward_short` viene modificata ad ogni trade di tipo short (cioè sotto la 200EMA): se la posizione viene aperta a un prezzo e chiusa a un prezzo più basso, `reward_short` cresce, altrimenti diminuisce.
+Each trade produces a **reward**. *The higher the reward, the more money will be invested in future trades.* *If the trade results in a profit, the overall reward increases; otherwise, it decreases.* The idea behind this is that if many consecutive trades result in a profit, then the trend is generally bullish (for long positions; bearish for short positions), so it's advisable to increase the stake to maximize gains. If, on the other hand, many trades result in a loss, it could be during a period of price consolidation with many false signals, so it's beneficial to reduce the amount of money per trade to minimize the potential for further losses.
 
-Per esempio, supponendo che n trade passati (n >= 1) abbiano generato profitto (quindi il valore di reward sarà maggiore di 1, cioè il valore di default), probabilmente il periodo in considerazione ha una spinta rialzista abbastanza marcata, quindi potrebbe essere conveniente investire di più nel prossimo trade (cioè invece di comprare 1 Bitcoin, ne compra valore_reward, con valore_reward > 1), perché è probabile che anch'esso chiuderà in profitto. Viceversa se n trade passati (n >= 1) hanno generato delle perdite, probabilmente il periodo in considerazione non ha un momentum ben definito, quindi la probabilità di generare ulteriori perdite non è così bassa e conviene investire di meno nel prossimo trade (cioè invece di comprare 1 Bitcoin, ne compra valore_reward, con valore_reward < 1) per essere più cauti e nel peggiore dei casi contenere ulteriori perdite.
+Two variables are used to maintain the values of rewards: one for long trades (`reward_long`) and one for short trades (`reward_short`), both initialized to 1. These variables are passed as parameters to the function for opening a position (`self.buy(size=self.reward_long)` for long positions and `self.sell(size=self.reward_short)` for short positions) and represent the amount to invest (1 means 1 Bitcoin).
 
-Il calcolo del reward è il seguente: per ogni posizione che viene chiusa, viene calcolata la differenza tra il prezzo di vendita e quello di acquisto e il risultato moltiplicato per un fattore per normalizzare il valore in base al prezzo della valuta su cui si stanno eseguendo i trade e a quanti soldi complessivi si possono investire (in questo caso è stato scelto 0.0001 come fattore). Poi si somma questo valore al valore attuale di `reward_long` se la posizione appena chiusa è di tipo long, altrimenti si somma al valore attuale di `reward_short` nel caso di posizioni short.
-Di seguito il codice (per motivi di chiarezza non vengono riportate tutte le istruzioni di log o non strettamente necessarie al calcolo del reward, anche se sono presenti nel codice completo):
+`reward_long` is modified after every long trade (i.e., when the trade is above the 200EMA): as explained earlier, if the position is opened at one price and closed at a higher price, `reward_long` increases; otherwise, it decreases.
+
+`reward_short` is modified after every short trade (i.e., when the trade is below the 200EMA): if the position is opened at one price and closed at a lower price, `reward_short` increases; otherwise, it decreases.
+
+For example, assuming that n past trades (n >= 1) have generated a profit (so the reward value is greater than 1, i.e., greater than the default value), it's likely that the current period has a strong bullish momentum. In this case, it might be advantageous to invest more in the next trade (i.e., instead of buying 1 Bitcoin, buy `reward_value` where `reward_value` > 1), because it's probable that it will also close with a profit. Conversely, if n past trades (n >= 1) have resulted in losses, it's likely that the current period doesn't have a well-defined momentum. Therefore, the probability of incurring further losses is not low, and it's advisable to invest less in the next trade (i.e., instead of buying 1 Bitcoin, buy `reward_value` where `reward_value` < 1) to be more cautious and, in the worst case scenario, limit additional losses.
+
+
+The calculation of the reward is as follows: for each closed position, the difference between the selling price and the buying price is calculated, and the result is multiplied by a factor to normalize the value based on the price of the currency being traded and the total amount of money that can be invested (in this case, 0.0001 was chosen as the factor). Then, this value is added to the current value of `reward_long` if the just-closed position is a long one; otherwise, it's added to the current value of `reward_short` in the case of short positions.
+
+Here is the code (for the sake of clarity, not all log or non-essential instructions for calculating the reward are included, although they are present in the complete code):
 
 ```python
 # Check if an order has been completed
@@ -143,64 +147,66 @@ if order.status in [order.Completed]:
             self.reward_long += (self.sell_price - self.buy_price) * 0.0001
 ```
 
-Inoltre se il prezzo scende sotto la 200EMA, `reward_long` viene resettata a 1, in quanto il momentum rialzista è terminato, quindi la prossima volta che il prezzo risalirà sopra la 200EMA, si riparte come se fosse il primo trade long. Lo stesso discorso vale in maniera speculare per `reward_short`.
+Additionally, if the price falls below the 200EMA, `reward_long` is reset to 1, as the bullish momentum has ended. Therefore, the next time the price rises above the 200EMA, it starts as if it were the first long trade. The same applies in a symmetrical manner to `reward_short`.
 
 
 
-### Strumenti utilizzati
+### Tools
 
-Per questo progetto sono stati utilizzati i seguenti strumenti:
+For this project, the following tools and resources were used:
 
-- [Backtrader](https://www.backtrader.com/) (con modulo Matplotlib per la visualizzazione dei grafici)
-  - Libreria python che permette di fare backtesting applicando delle strategie di trading sui dati dell'asset su cui si intende fare trading
-- [Binance API](https://binance-docs.github.io/apidocs/spot/en/#change-log)
-  - API fornite dall'exchange Binance
-  - Permettono di interagire col sistema per ricavare informazioni sui mercati o sull'account personale
-  - Usate attraverso il wrapper per python [python-binance](https://github.com/sammchardy/python-binance) per ricavare i dati sui prezzi e generare il file [15min_BTC-USDT.csv](datas/15min_BTC-USDT.csv), che contiene tutti i prezzi della coppia BTC/USDT dal 01/01/2022 al 30/03/2022 con un timeframe di 15 minuti
-    - Il formato del file è il seguente: `Datetime,Open,High,Low,Close,Volume`
-  - Il codice per generare il file è [generate_data.py](Utils/generate_data.py)
-    - Ovviamente è possibile modificare tutti i parametri come la coppia scelta, il periodo, il timeframe, ...
-
-
-
-### Architettura del progetto
-
-Il progetto è stato organizzato come segue:
-
-- Lo script [backtest.py](backtest.py) è lo script da eseguire per far partire la simulazione
-  - Si occupa di fare un parsing degli argomenti in input (attualmente possono essere solo la data di inizio e quella di fine, entrambe opzionali), di fare un setup iniziale, di eseguire la simulazione con la strategia selezionata e infine stampare i risultati e aprire una finestra con il grafico
-- Nella cartella [Strategies](Strategies) sono presenti tutte le strategie implementate. Attualmente ce ne sono due: [AIStrategy](Strategies/AIStrategy.py), che rappresenta quella di questo progetto e testStrategy, che può essere visto semplicemente come un test iniziale per controllare che tutto funzioni correttamente (presa dalla documentazione di Backtrader)
-  - *Si noti come, combinando questi primi due punti è possibile eseguire backtest.py usando strategie diverse, per esempio passando quella che si vuole testare come parametro, e compararle tra di loro*
-  - La classe AIStrategy implementa i seguenti metodi (vengono riportati solo quelli derivati dalla superclasse Strategy di Backtrader):
-    - log(): utile per vedere quando viene fatto un ordine, con prezzo, tipo, timestamp e profitto
-    - \__init__(): viene eseguito all'inizio e serve per inizializzare i vari indicatori e variabili
-    - next(): è il cuore della strategia. Viene eseguito a ogni candela e si occupa di effettuare i vari calcoli per capire cosa bisogna fare. Ad esempio calcola se c'è stato un crossover nel MACD, controlla se c'è una posizione aperta o meno e in base a ciò controlla se bisogna aprirne o chiuderne
-- Lo script [generate_data.py](Utils/generate_data.py) all'interno della cartella Utils, serve per generare i dataset, come spiegato nel capitolo precedente
-- In [datas](datas) sono contenuti i dataset, come spiegato nel capitolo precedente
-
-***In questo modo il sistema è molto flessibile ed è potenzialmente possibile testarlo con strategie diverse, dataset diversi (anche con timeframe diversi), intervalli diversi, ...***
+- [Backtrader](https://www.backtrader.com/) (with the Matplotlib module for chart visualization):
+  - Backtrader is a Python library that allows for backtesting by applying trading strategies to asset data.
+- [Binance API](https://binance-docs.github.io/apidocs/spot/en/#change-log):
+  - Binance provides APIs for interaction with their exchange system, allowing you to retrieve information about markets or your personal account.
+  - These APIs were used through the Python wrapper [python-binance](https://github.com/sammchardy/python-binance) to fetch price data and generate the file [15min_BTC-USDT.csv](datas/15min_BTC-USDT.csv), which contains all the prices for the BTC/USDT pair from 01/01/2022 to 30/03/2022 with a 15-minute timeframe.
+    - The format of the file is as follows: `Datetime,Open,High,Low,Close,Volume`.
+  - The code to generate this file can be found in [generate_data.py](Utils/generate_data.py).
+    - Of course, you can modify all the parameters such as the chosen pair, the period, the timeframe, and so on.
 
 
 
-### Risultati
+### Project Architecture
 
-Di seguito vengono riportati alcuni grafici derivati dalle simulazioni di periodi diversi (e viene fatto un confronto tra la strategia che implementa il calcolo del reward e la stessa strategia senza reward).
+The project has been organized as follows:
 
-- Dal 01-01-2022 al 08-01-2022 (1 settimana, parametri di default)![one week from 01-01-2022](Docs/one_week_from_01-01-2022.png)
-- Dal 01-01-2022 al 08-01-2022 (1 settimana, parametri di default, no reward)![one week from 01-01-2022](Docs/one_week_from_01-01-2022_no_reward.png)
-- Dal 01-01-2022 al 15-01-2022 (2 settimane)![two weeks from 01-01-2022](Docs/two_weeks_from_01-01-2022.png)
-- Dal 01-01-2022 al 15-01-2022 (2 settimane, no reward)![two weeks from 01-01-2022](Docs/two_weeks_from_01-01-2022_no_reward.png)
-- Dal 01-01-2022 al 01-02-2022 (1 mese)![one_month_from_01-01-2022](Docs/one_month_from_01-01-2022.png)
-- Dal 01-01-2022 al 01-02-2022 (1 mese, no reward)![one_month_from_01-01-2022](Docs/one_month_from_01-01-2022_no_reward.png)
-- Dal 01-01-2022 al 01-03-2022 (2 mesi)![two_months_from_01-01-2022](Docs/two_months_from_01-01-2022.png)
-- Dal 01-01-2022 al 01-03-2022 (2 mesi, no reward)![two_months_from_01-01-2022](Docs/two_months_from_01-01-2022_no_reward.png)
-- Dal 01-02-2022 al 08-02-2022 (1 settimana)![one_week_from_01-02-2022](Docs/one_week_from_01-02-2022.png)
-- Dal 01-02-2022 al 08-02-2022 (1 settimana, no reward)![one_week_from_01-02-2022](Docs/one_week_from_01-02-2022_no_reward.png)
-- Dal 01-03-2022 al 08-03-2022 (1 settimana)![one_week_from_01-03-2022](Docs/one_week_from_01-03-2022.png)
-- Dal 01-03-2022 al 08-03-2022 (1 settimana, no reward)![one_week_from_01-03-2022](Docs/one_week_from_01-03-2022_no_reward.png)
+- The script [backtest.py](backtest.py) is the script to run to start the simulation.
+  - It handles parsing of input arguments (currently, only the start and end dates, both optional), performs initial setup, executes the simulation with the selected strategy, and finally prints the results and opens a window with the chart.
+- In the [Strategies](Strategies) folder, you can find all the implemented strategies. Currently, there are two: [AIStrategy](Strategies/AIStrategy.py), which represents the strategy of this project, and testStrategy, which can be seen as an initial test to ensure everything works correctly (taken from Backtrader's documentation).
+  - *Note that by combining the first two points, you can run backtest.py using different strategies, for example, by passing the strategy you want to test as a parameter, and compare them with each other.*
+  - The AIStrategy class implements the following methods (only those derived from the Backtrader Strategy superclass are listed):
+    - log(): useful for seeing when an order is executed, with price, type, timestamp, and profit.
+    - \__init__(): executed at the beginning to initialize various indicators and variables.
+    - next(): the heart of the strategy. It is executed at each candle and is responsible for performing various calculations to determine what needs to be done. For example, it calculates whether there has been a MACD crossover, checks if there is an open position or not, and based on that, it checks whether to open or close positions.
 
-Si può notare come questa strategia funzioni meglio nei periodi in cui il prezzo ha una direzione ben precisa rialzista o ribassista, ma meno quando è in lateralizzazione. Questo perché in quel caso gli indicatori generano molti più falsi segnali, e quindi i profitti sono molto bassi o peggio, si hanno delle perdite. Per esempio lo si vede molto bene nella prima immagine, dove la maggior parte delle giornate il prezzo rimane stabile (circa 48000\$) e passa molto spesso da sopra a sotto la 200EMA. L'equilibrio viene rotto molto bruscamente al quinto giorno al ribasso (si passa a 43000\$, generando infatti un profitto chiudendo una posizione short), ma poi ricomincia un nuovo equilibrio (tra i 43000\$ e i 41000\$). Tuttavia le potenziali perdite vengono minimizzate dall'osservazione fatta in precedenza, cioè di chiudere le posizioni se il prezzo tocca la 200EMA, che si è rivelata molto buona.
-In generale il discorso appena fatto vale per tutti gli altri grafici e si noti quindi come, quando il prezzo rimane stabile in un certo range, le perdite sono molte di più rispetto a quando non lo è. Questo pattern si vede molto bene soprattutto nei grafici di più lungo periodo, come quello di 1 mese o quello di 2 mesi.
+- The script [generate_data.py](Utils/generate_data.py) inside the Utils folder is used to generate datasets, as explained in the previous chapter.
+- In the [datas](datas) folder, you can find the datasets, as explained in the previous chapter.
 
-Per quello che riguarda il discorso sul reward, invece, si nota come in generale abbia funzionato relativamente bene. Infatti, tranne nei primi due esempi (dal 01-01-2022 al 08-01-2022 e dal 01-01-2022 al 15-01-2022), in cui c'è una perdita minima (in generale per periodi brevi la differenza è poca), la versione che implementa il calcolo del reward ha generato più profitto rispetto a quella che non lo tiene in considerazione. Le posizioni vengono aperte con investimenti maggiori, quindi sia i profitti sia le perdite hanno un valore maggiore rispetto alla versione senza reward se il reward precedente è maggiore di 1 (saranno minori se è minore di 1, anche se quest'ultimo capita raramente, in quanto se il reward diventa minore di 1 significa che probabilmente molto presto avverrà un cambio di trend; per esempio se il reward delle posizioni long diventa minore di 1, quasi sempre subito dopo il prezzo passa sotto la 200EMA e quindi si passa ad aprire posizioni short, con il relativo reward (si ricorda che sono 2 variabili separate)).
-Tuttavia, se l'upper bound per prendere il profitto rimane sempre il take profit, il lower bound non è sempre lo stop loss, ma può diventare la 200EMA. Questo contribuisce molto ad avere profitti più alti e a contenere il prezzo delle perdite, generando così, maggiore profitto rispetto alla versione senza reward (si vedano per esempio i grafici delle due implementazioni di 1 mese e 2 mesi).
+***This setup makes the system highly flexible, and it's potentially possible to test it with different strategies, different datasets (including different timeframes), different intervals, and so on.***
+
+
+
+### Results
+
+Below are some charts derived from simulations of different periods (and a comparison is made between the strategy that implements reward calculation and the same strategy without reward).
+
+- From 01-01-2022 to 08-01-2022 (1 week, default parameters)![one week from 01-01-2022](Docs/one_week_from_01-01-2022.png)
+- From 01-01-2022 to 08-01-2022 (1 week, default parameters, no reward)![one week from 01-01-2022](Docs/one_week_from_01-01-2022_no_reward.png)
+- From 01-01-2022 to 15-01-2022 (2 weeks)![two weeks from 01-01-2022](Docs/two_weeks_from_01-01-2022.png)
+- From 01-01-2022 to 15-01-2022 (2 week, no reward)![two weeks from 01-01-2022](Docs/two_weeks_from_01-01-2022_no_reward.png)
+- From 01-01-2022 to 01-02-2022 (1 month)![one_month_from_01-01-2022](Docs/one_month_from_01-01-2022.png)
+- From 01-01-2022 to 01-02-2022 (1 month, no reward)![one_month_from_01-01-2022](Docs/one_month_from_01-01-2022_no_reward.png)
+- From 01-01-2022 to 01-03-2022 (2 months)![two_months_from_01-01-2022](Docs/two_months_from_01-01-2022.png)
+- From 01-01-2022 to 01-03-2022 (2 months, no reward)![two_months_from_01-01-2022](Docs/two_months_from_01-01-2022_no_reward.png)
+- From 01-02-2022 to 08-02-2022 (1 week)![one_week_from_01-02-2022](Docs/one_week_from_01-02-2022.png)
+- From 01-02-2022 to 08-02-2022 (1 week, no reward)![one_week_from_01-02-2022](Docs/one_week_from_01-02-2022_no_reward.png)
+- From 01-03-2022 to 08-03-2022 (1 week)![one_week_from_01-03-2022](Docs/one_week_from_01-03-2022.png)
+- From 01-03-2022 to 08-03-2022 (1 week, no reward)![one_week_from_01-03-2022](Docs/one_week_from_01-03-2022_no_reward.png)
+
+It can be observed that this strategy works better during periods when the price has a clear bullish or bearish direction, but less so when it is in a sideways trend. This is because during sideways trends, the indicators generate many more false signals, resulting in very low profits or even losses. For example, this is clearly seen in the first image, where the price remains stable for most days (around \$48,000) and frequently crosses above and below the 200EMA. The balance is abruptly broken to the downside on the fifth day (dropping to \$43,000, generating a profit by closing a short position), but then a new equilibrium is established (between \$43,000 and \$41,000). However, potential losses are minimized by the observation made earlier, which is to close positions if the price touches the 200EMA, which has proven to be quite effective.
+
+In general, the above observations apply to all the other charts, and it is noticeable that when the price remains stable within a certain range, losses are more frequent compared to when it doesn't. This pattern is especially evident in longer-term charts, such as the one-month or two-month charts.
+
+Regarding the discussion about reward, it is generally observed that it has performed relatively well. In fact, except for the first two examples (from 01-01-2022 to 08-01-2022 and from 01-01-2022 to 15-01-2022), where there is minimal loss (generally, for short periods, the difference is small), the version that implements reward calculation has generated more profit compared to the one that does not consider it. Positions are opened with larger investments, so both profits and losses have higher values compared to the version without reward if the previous reward is greater than 1 (they will be lower if it is less than 1, although this rarely happens, as if the reward becomes less than 1, it likely indicates a trend change will occur soon; for example, if the reward for long positions becomes less than 1, almost always shortly after, the price drops below the 200EMA, and thus, short positions are opened with their respective reward (remember that there are two separate variables)).
+
+However, while the upper bound for taking profit always remains the take profit, the lower bound is not always the stop loss but can become the 200EMA. This greatly contributes to higher profits and containing the price of losses, resulting in more profit compared to the version without reward (as seen, for example, in the charts of the two implementations for 1 month and 2 months).
